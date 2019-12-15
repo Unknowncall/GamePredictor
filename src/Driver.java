@@ -56,8 +56,10 @@ public class Driver {
 				if (contrib == null) {
 					System.out.println("These teams have never played each other before. We do not have data to complete this task.");
 				} else {
+					System.out.println("This is the estimated contribution for team: " + teamOne1 + ".");
 					for (int key : contrib.keySet()) {
 						String sql = "SELECT player_name FROM player WHERE player_id = '" + key + "'";
+						//System.out.println(sql);
 						try {
 							ResultSet set = driver.connection.createStatement().executeQuery(sql);
 							set.next();
@@ -84,6 +86,7 @@ public class Driver {
 				System.out.println("That was not a valid input. Please input, 1, 2, 3, 4, or 5.");
 				break;
 			}
+			
 		}
 		
 		System.out.println("Exiting...");
@@ -205,7 +208,7 @@ public class Driver {
 			return null;
 		}
 		
-		String fourthSQL = "SELECT * FROM `player` WHERE team_id = " + teamOne + " LIMIT 5";
+		String fourthSQL = "SELECT * FROM `player` WHERE team_id = " + teamOne + " ORDER BY `avg_gold_share` DESC LIMIT 5";
 		
 		try {
 			ResultSet set = connection.createStatement().executeQuery(fourthSQL);
