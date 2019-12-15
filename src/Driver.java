@@ -3,6 +3,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Driver {
@@ -44,8 +45,31 @@ public class Driver {
 				}
 				
 				break;
-			case "2": // Stretch 1
+			case "2":
+				System.out.println("Please input the team id for team one (Must be an integer): ");
+				int teamOne1 = scanner.nextInt();
+				System.out.println("Please input the team id for team two (Must be an integer): ");
+				int teamTwo1 = scanner.nextInt();
 				
+				HashMap<Integer, Double> contrib = driver.playerContribution(teamOne1, teamTwo1);
+				
+				if (contrib == null) {
+					System.out.println("These teams have never played each other before. We do not have data to complete this task.");
+				} else {
+					for (int key : contrib.keySet()) {
+						String sql = "SELECT player_name FROM player WHERE player_id = '" + key + "'";
+						try {
+							ResultSet set = driver.connection.createStatement().executeQuery(sql);
+							set.next();
+							System.out.println(set.getString("player_name") + ": " + df.format(contrib.get(key) * 100) + "%.");
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						
+					}
+				}
 				break;
 			case "3": // Stretch 2
 				
@@ -101,10 +125,9 @@ public class Driver {
 		System.out.println("Connection opened. Time taken: " + (System.currentTimeMillis() - start) + " m/s");
 
 	}
-	
 
 	/**
-	 * What are the odds that teamOne will beat teamTwo based on our historical data?
+	 * What are the odds that teamOne will beat teamTwo based on our historical data? Bayesian 
 	 * @param teamOne
 	 * @param teamTwo
 	 * @return the probility of the chance team one will win. If the team has never played one another, it will return NaN.
@@ -173,5 +196,55 @@ public class Driver {
 		double numThree = loses/(totalGamesPlayed + 0.0);
 		return numOne * numTwo / numThree;
 	}
+	
+	
+	// MVP calculated by the win percent and avg gold share.
+	public HashMap<Integer, Double> playerContribution(int teamOne, int teamTwo) {
+		
+		if (Double.isNaN(winProbability(teamOne, teamTwo))) {
+			return null;
+		}
+		
+		String fourthSQL = "SELECT * FROM `player` WHERE team_id = " + teamOne + " LIMIT 5";
+		
+		try {
+			ResultSet set = connection.createStatement().executeQuery(fourthSQL);
+			HashMap<Integer, Double> contribs = new HashMap<Integer, Double>();
+			
+			while (set.next()) {
+				contribs.put(set.getInt("player_id"), set.getDouble("avg_gold_share"));
+			}
+			
+			HashMap<Integer, Double> finalContribs = new HashMap<Integer, Double>();
+			double totalAvgGoldShare = 0.0;
+			
+			for (Integer key : contribs.keySet()) {
+				totalAvgGoldShare += contribs.get(key);
+			}
+			
+			for (Integer key : contribs.keySet()) {
+				finalContribs.put(key, (contribs.get(key) / totalAvgGoldShare));
+			}
+			
+			return finalContribs;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	
+	// Proper Bans, use bayesian to predict win percent with a champion.
+	/*
+	 * P(team = T | champ = T) = P(champ = T | team = T) * P(team = T) / P(champ = T)
+	 * P(team = T | champ = F) = P(champ = F | team = T) * P(team = T) / P(champ = F)
+	 * 
+	*/
+	
+	// One Rule 
+	// Finding the best champions, is champ on team? If so, return win. Is champion in game = true
+
 
 }
