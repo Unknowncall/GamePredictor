@@ -36,7 +36,7 @@ public class Driver {
 			String input = scanner.next();
 
 			switch (input) {
-			case "1": // mvp
+			case "1": // mvp - cool
 				System.out.println("Please input the team id for team one (Must be an integer): ");
 				int teamOne = scanner.nextInt();
 				System.out.println("Please input the team id for team two (Must be an integer): ");
